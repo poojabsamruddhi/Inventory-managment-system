@@ -224,7 +224,9 @@ else:
             display_df['Item ID'] = filtered_df['display_id']
             display_df['Product Name'] = filtered_df.get('item_name', '')
             display_df['Category Classification'] = filtered_df.get('category', '')
-            display_df['Available Stock'] = filtered_df['quantity'].apply(lambda x: f'{int(x)} units')
+            display_df['Available Stock'] = filtered_df.apply(
+                lambda row: f"{int(row['quantity'])} {row.get('unit', 'Units')}", axis=1
+            )
             display_df['Unit Price (1 Qty)'] = filtered_df['unit_price'].apply(format_currency)
             display_df['Total Amount'] = (filtered_df['quantity'] * filtered_df['unit_price']).apply(format_currency)
             display_df['Inventory Health'] = filtered_df['quantity'].apply(
@@ -247,7 +249,7 @@ else:
 
     with tab_add:
         st.markdown('### ➕ Inventory Ingestion Pipeline')
-        st.info('ℹ️ Enter Total Quantity and Price for 1 Quantity — the Total Amount will calculate automatically.')
+        st.info('ℹ️ Enter Total Quantity, select measurement unit, and enter price for 1 quantity — the Total Amount calculates automatically.')
 
         with st.container(border=True):
             prod_name = st.text_input('Product Name', placeholder='e.g., Sugar', key='add_prod_name')
@@ -273,15 +275,21 @@ else:
             with c_sup:
                 supplier = st.text_input('Vendor / Supplier Source', placeholder='e.g., global traders', key='add_supplier')
 
-            c_qt, c_pr, c_tot = st.columns(3)
+            c_qt, c_unit, c_pr, c_tot = st.columns([1, 1, 1, 1.2])
             with c_qt:
                 quantity = st.number_input('Total Quantity', min_value=0, step=1, value=0, key='add_qty')
+            with c_unit:
+                unit_type = st.selectbox(
+                    'Unit',
+                    ['Units', 'Kg', 'Grams', 'Liters', 'ML', 'Packets', 'Boxes', 'Pieces'],
+                    key='add_unit_type',
+                )
             with c_pr:
-                price = st.number_input('Amount for 1 Quantity (₹)', min_value=0.0, step=1.0, format='%.2f', value=0.0, key='add_price')
+                price = st.number_input('Price per Unit (₹)', min_value=0.0, step=1.0, format='%.2f', value=0.0, key='add_price')
             with c_tot:
                 calculated_total = float(quantity) * float(price)
                 st.markdown(
-                    f'<div class="total-calc-box">Total Amount: ₹{calculated_total:,.2f}</div>',
+                    f'<div class="total-calc-box">Total: ₹{calculated_total:,.2f}</div>',
                     unsafe_allow_html=True,
                 )
 
@@ -300,8 +308,10 @@ else:
                         item_payload = {
                             'item_id': db_item_id,
                             'ShopID': st.session_state.shop_id,
+                            'shop_name': st.session_state.shop_name,
                             'item_name': prod_name.strip(),
                             'category': category,
+                            'unit': unit_type,
                             'unit_price': float(price),
                             'quantity': final_qty,
                             'supplier': supplier or 'Direct Vendor',
@@ -310,7 +320,7 @@ else:
                         }
                         db.add_item(item_payload)
                         st.success(
-                            f'✅ Successfully registered **{prod_name}** ({quantity} added, total now {final_qty} units @ ₹{price:,.2f}/unit = **₹{float(final_qty) * float(price):,.2f}**)'
+                            f'✅ Successfully registered **{prod_name}** ({quantity} {unit_type} added, total now {final_qty} {unit_type} @ ₹{price:,.2f}/unit = **₹{float(final_qty) * float(price):,.2f}**)'
                         )
                         st.balloons()
                         st.rerun()
@@ -336,7 +346,7 @@ else:
                     up_label = st.selectbox('Select Target Item ID', display_labels)
                     up_id = id_map[up_label]
                     new_qty = st.number_input('Revised Stock Quantity', min_value=0, step=1, key='upd_qty')
-                    new_price = st.number_input('Revised Amount for 1 Quantity (₹)', min_value=0.0, format='%.2f', key='upd_price')
+                    new_price = st.number_input('Revised Amount for 1 Unit (₹)', min_value=0.0, format='%.2f', key='upd_price')
                     revised_total = float(new_qty) * float(new_price)
                     st.info(f'💰 **Revised Total Valuation:** ₹{revised_total:,.2f}')
 
