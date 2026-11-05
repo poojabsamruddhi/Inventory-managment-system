@@ -3,79 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Login | Hypermarket ERP</title>
+    <title>Login - Hypermarket ERP</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; color: #fff; }
-        .login-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        h2 { text-align: center; margin-bottom: 1.5rem; color: #60a5fa; }
-        .form-group { margin-bottom: 1.2rem; }
-        label { display: block; margin-bottom: 0.4rem; font-size: 0.9rem; color: #cbd5e1; }
-        input, select { width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); color: #0f172a; font-size: 1rem; box-sizing: border-box; }
-        button { width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 1rem; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
-        button:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .alert { padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.85rem; text-align: center; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 40px; 
+            background-color: #0f172a; /* Deep navy background */
+            color: #e2e8f0; /* Light slate text */
+        }
+        .login-container { 
+            max-width: 400px; 
+            margin: 0 auto; 
+            background-color: #1e293b; /* Lighter panel color */
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            border: 1px solid #334155; /* Subtle border */
+        }
+        .form-group { margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #cbd5e1; font-size: 14px; }
+        
+        input[type="text"], input[type="password"], select { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #475569; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+            background-color: #0f172a; /* Dark inputs */
+            color: #f8fafc; /* White text inside inputs */
+        }
+        
+        input::placeholder { color: #64748b; }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        }
+        
+        .btn { 
+            background-color: #2563eb; /* Primary blue */
+            color: white; 
+            padding: 12px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 16px; 
+            font-weight: bold;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .btn:hover { background-color: #1d4ed8; }
+        
+        /* Dark mode alerts */
+        .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; font-size: 14px; }
+        .alert-danger { background-color: #7f1d1d; color: #fecaca; border: 1px solid #991b1b; }
+        .alert-success { background-color: #14532d; color: #bbf7d0; border: 1px solid #166534; }
+        .alert-warning { background-color: #78350f; color: #fde68a; border: 1px solid #92400e; }
+        
+        .text-center { text-align: center; }
+        h2 { color: #f8fafc; margin-top: 0; margin-bottom: 25px; }
+        a { color: #60a5fa; transition: color 0.2s; }
+        a:hover { color: #93c5fd; }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <h2>🏬 Hypermarket ERP</h2>
+
+    <div class="login-container">
+        <h2 class="text-center">System Login</h2>
         
+        <!-- Display Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
         {% endwith %}
 
         <form method="POST" action="/login">
             <div class="form-group">
                 <label>Store / Mart Name</label>
-                <input type="text" name="shop_name" placeholder="e.g. Samruddhi Mart" required>
+                <input type="text" name="shop_name" required placeholder="e.g. Rahul Supermarket">
             </div>
+            
             <div class="form-group">
-                <label>Access Role</label>
-                <select name="user_role" id="user_role" onchange="toggleRoleFields()">
+                <label>Role</label>
+                <select name="user_role" id="user_role" onchange="toggleFields()">
                     <option value="Store / Mart Admin">Store / Mart Admin</option>
                     <option value="Department Staff">Department Staff</option>
                 </select>
             </div>
 
-            <!-- Admin Passcode Field (Only shown if Admin is selected) -->
-            <div class="form-group" id="admin-passcode-group">
-                <label>Admin Secret Passcode</label>
-                <input type="password" name="admin_passcode" placeholder="Enter admin passcode">
-            </div>
-
-            <!-- Department Field (Only shown if Staff is selected) -->
-            <div class="form-group" id="dept-group" style="display: none;">
-                <label>Assigned Section / Department</label>
+            <div class="form-group" id="dept_group" style="display: none;">
+                <label>Department</label>
                 <select name="department">
                     {% for dept in departments %}
                     <option value="{{ dept }}">{{ dept }}</option>
                     {% endfor %}
                 </select>
             </div>
-
-            <button type="submit">Go</button>
+            
+            <div class="form-group" id="passcode_group">
+                <label>Admin Passcode</label>
+                <input type="password" name="admin_passcode" placeholder="Enter security passcode">
+            </div>
+            
+            <button type="submit" class="btn">Log In</button>
         </form>
+        
+        <!-- Registration Link -->
+        <div class="text-center" style="margin-top: 25px; font-size: 14px;">
+            <p style="color: #94a3b8;">New here? <a href="/register" style="text-decoration: none; font-weight: bold;">Register your store</a></p>
+        </div>
     </div>
 
+    <!-- JavaScript to toggle Passcode vs Department based on Role -->
     <script>
-        function toggleRoleFields() {
-            var role = document.getElementById("user_role").value;
-            var deptGroup = document.getElementById("dept-group");
-            var adminPasscodeGroup = document.getElementById("admin-passcode-group");
-
-            if (role === "Department Staff") {
-                deptGroup.style.display = "block";
-                adminPasscodeGroup.style.display = "none";
+        function toggleFields() {
+            var role = document.getElementById('user_role').value;
+            var deptGroup = document.getElementById('dept_group');
+            var passGroup = document.getElementById('passcode_group');
+            
+            if (role === 'Store / Mart Admin') {
+                deptGroup.style.display = 'none';
+                passGroup.style.display = 'block';
             } else {
-                deptGroup.style.display = "none";
-                adminPasscodeGroup.style.display = "block";
+                deptGroup.style.display = 'block';
+                passGroup.style.display = 'none';
             }
         }
-        toggleRoleFields();
+        
+        // Run once when the page loads to set the correct view
+        window.onload = toggleFields;
     </script>
 </body>
 </html>

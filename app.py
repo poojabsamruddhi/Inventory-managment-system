@@ -1,7 +1,7 @@
 from datetime import datetime
-from decimal import Decimal
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 import config
 from db import DynamoDBManager
 
@@ -74,7 +74,7 @@ def index():
                 filtered_items = all_shop_items
                 
             total_valuation = sum(float(i.get('unit_price', 0)) * int(i.get('quantity', 0)) for i in filtered_items)
-            low_stock_count = sum(1 for i in filtered_items if int(i.get('quantity', 0)) < config.DEFAULT_LOW_STOCK_THRESHOLD)
+            low_stock_count = sum(1 for i in filtered_items if int(i.get('quantity', 0)) < getattr(config, 'DEFAULT_LOW_STOCK_THRESHOLD', 5))
     except Exception as e:
         flash(f"Database notice: Could not fetch live items ({str(e)}).", "warning")
         filtered_items = []
@@ -93,6 +93,34 @@ def index():
         low_stock_count=low_stock_count
     )
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        shop_name = request.form.get('shop_name', '').strip()
+        admin_passcode = request.form.get('admin_passcode', '')
+
+        if not shop_name or not admin_passcode:
+            flash("Store Name and Passcode are required.", "warning")
+            return render_template('register.html')
+
+        if db:
+            # Check if store already exists
+            existing_store = db.get_store_account(shop_name)
+            if existing_store:
+                flash(f"The store '{shop_name}' is already registered. Please log in.", "warning")
+                return redirect(url_for('login'))
+
+            # Encrypt the password and save to database
+            hashed_pw = generate_password_hash(admin_passcode)
+            try:
+                db.create_store_account(shop_name, hashed_pw)
+                flash("Store registered successfully! You can now log in as Admin.", "success")
+                return redirect(url_for('login'))
+            except Exception as e:
+                flash(f"Database error: {str(e)}", "danger")
+
+    return render_template('register.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -105,15 +133,24 @@ def login():
             flash("Store / Mart Name is required.", "warning")
             return render_template('login.html', departments=DEPARTMENT_LIST)
             
-        # Security Check: Verify store-specific admin passcode
+        # Security Check: Verify store-specific admin passcode from Database
         if user_role == 'Store / Mart Admin':
             upper_shop_name = shop_name.upper()
-            # Fetch specific password from config, default to 'ADMIN123' if store is brand new
-            valid_passcode = getattr(config, 'ADMIN_PASSWORDS', {}).get(upper_shop_name, 'ADMIN123')
             
-            if admin_passcode != valid_passcode:
-                flash("Unauthorized: Invalid Admin Security Passcode for this store!", "danger")
-                return render_template('login.html', departments=DEPARTMENT_LIST)
+            if db:
+                store_account = db.get_store_account(upper_shop_name)
+                
+                if store_account:
+                    # Check if the typed password matches the encrypted database password
+                    if not check_password_hash(store_account['password_hash'], admin_passcode):
+                        flash("Unauthorized: Invalid Admin Security Passcode!", "danger")
+                        return render_template('login.html', departments=DEPARTMENT_LIST)
+                else:
+                    # Fallback for old stores in config.py
+                    valid_passcode = getattr(config, 'ADMIN_PASSWORDS', {}).get(upper_shop_name)
+                    if not valid_passcode or admin_passcode != valid_passcode:
+                        flash("Store not found or Invalid Passcode! Please register your store first.", "danger")
+                        return render_template('login.html', departments=DEPARTMENT_LIST)
 
         session['logged_in'] = True
         session['shop_name'] = shop_name

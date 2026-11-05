@@ -66,6 +66,7 @@ class DynamoDBManager:
         endpoint_url: Optional[str] = config.DYNAMODB_ENDPOINT_URL,
     ):
         self.table_name = table_name
+        self.accounts_table_name = 'StoreAccounts'
         self.region_name = region_name
         self.endpoint_url = endpoint_url
         self._session: Optional[boto3.Session] = None
@@ -107,8 +108,13 @@ class DynamoDBManager:
 
     @property
     def table(self):
-        """Returns the DynamoDB Table resource."""
+        """Returns the DynamoDB Table resource for Inventory."""
         return self.resource.Table(self.table_name)
+        
+    @property
+    def accounts_table(self):
+        """Returns the DynamoDB Table resource for Store Accounts."""
+        return self.resource.Table(self.accounts_table_name)
 
     def verify_connection(self) -> Tuple[bool, str, Dict[str, Any]]:
         """Tests AWS connectivity and checks whether the DynamoDB table exists."""
@@ -351,3 +357,30 @@ class DynamoDBManager:
                 batch.put_item(Item=_to_decimal(item_copy))
                 inserted_count += 1
         return inserted_count
+
+    # ==========================================
+    # STORE ACCOUNT REGISTRATION FUNCTIONS
+    # ==========================================
+
+    def create_store_account(self, shop_name: str, password_hash: str) -> None:
+        """Saves a new store registration to the StoreAccounts table."""
+        try:
+            self.accounts_table.put_item(
+                Item={
+                    'shop_name': shop_name.upper(),
+                    'password_hash': password_hash,
+                    'created_at': datetime.now(timezone.utc).isoformat()
+                }
+            )
+        except ClientError as e:
+            logger.error("Error creating store account for %s: %s", shop_name, e)
+            raise
+
+    def get_store_account(self, shop_name: str) -> Optional[Dict[str, Any]]:
+        """Fetches a store's details from the StoreAccounts table."""
+        try:
+            response = self.accounts_table.get_item(Key={'shop_name': shop_name.upper()})
+            return response.get('Item')
+        except ClientError as e:
+            logger.error("Error fetching store account %s: %s", shop_name, e)
+            raise

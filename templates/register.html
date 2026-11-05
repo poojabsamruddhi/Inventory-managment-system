@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Store - Hypermarket ERP</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 40px; 
+            background-color: #0f172a; /* Deep navy background */
+            color: #e2e8f0; /* Light slate text */
+        }
+        .register-container { 
+            max-width: 400px; 
+            margin: 0 auto; 
+            background-color: #1e293b; /* Lighter panel color */
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            border: 1px solid #334155; /* Subtle border */
+        }
+        .form-group { margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #cbd5e1; font-size: 14px; }
+        
+        input[type="text"], input[type="password"] { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #475569; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+            background-color: #0f172a; /* Dark inputs */
+            color: #f8fafc; /* White text inside inputs */
+        }
+        
+        input::placeholder { color: #64748b; }
+        
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        }
+        
+        .btn { 
+            background-color: #2563eb; /* Primary blue */
+            color: white; 
+            padding: 12px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 16px; 
+            font-weight: bold;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .btn:hover { background-color: #1d4ed8; }
+        
+        /* Dark mode alerts */
+        .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; font-size: 14px; }
+        .alert-danger { background-color: #7f1d1d; color: #fecaca; border: 1px solid #991b1b; }
+        .alert-success { background-color: #14532d; color: #bbf7d0; border: 1px solid #166534; }
+        .alert-warning { background-color: #78350f; color: #fde68a; border: 1px solid #92400e; }
+        
+        .text-center { text-align: center; }
+        h2 { color: #f8fafc; margin-top: 0; margin-bottom: 25px; }
+        a { color: #60a5fa; transition: color 0.2s; }
+        a:hover { color: #93c5fd; }
+    </style>
+</head>
+<body>
+
+    <div class="register-container">
+        <h2 class="text-center">Register New Store</h2>
+        
+        <!-- Display Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/register">
+            <div class="form-group">
+                <label>Store / Mart Name</label>
+                <input type="text" name="shop_name" required placeholder="e.g. Rahul Supermarket">
+            </div>
+            
+            <div class="form-group">
+                <label>Create Admin Passcode</label>
+                <input type="password" name="admin_passcode" required placeholder="Create a secure password">
+            </div>
+            
+            <button type="submit" class="btn">Register Store</button>
+        </form>
+        
+        <!-- Login Link -->
+        <div class="text-center" style="margin-top: 25px; font-size: 14px;">
+            <p style="color: #94a3b8;">Already registered? <a href="/login" style="text-decoration: none; font-weight: bold;">Log in here</a></p>
+        </div>
+    </div>
+
+</body>
+</html>

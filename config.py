@@ -24,14 +24,6 @@ DYNAMODB_ENDPOINT_URL = os.getenv("DYNAMODB_ENDPOINT_URL")  # e.g., http://local
 # Application Defaults
 DEFAULT_LOW_STOCK_THRESHOLD = int(os.getenv("LOW_STOCK_THRESHOLD", "5"))
 
-# Store-specific admin passwords dictionary
-ADMIN_PASSWORDS = {
-    "SAMRUDDHI MART": "Sam@2026",
-    "RELIANCE HYPER": "Rel@9999",
-    "MODERN BAZAAR": "Mod@5555"
-}
-
-
 def get_config_summary() -> dict:
     """
     Returns safe configuration metadata for UI diagnostic display,
