@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Hypermarket ERP</title>
+    <title>Login - Inventory Management System</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             padding: 40px; 
-            background-color: #0f172a; /* Deep navy background */
-            color: #e2e8f0; /* Light slate text */
+            background-color: #0f172a; 
+            color: #e2e8f0; 
         }
         .login-container { 
             max-width: 400px; 
             margin: 0 auto; 
-            background-color: #1e293b; /* Lighter panel color */
+            background-color: #1e293b; 
             padding: 30px; 
             border-radius: 8px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
-            border: 1px solid #334155; /* Subtle border */
+            border: 1px solid #334155; 
         }
         .form-group { margin-bottom: 20px; }
         label { font-weight: bold; display: block; margin-bottom: 8px; color: #cbd5e1; font-size: 14px; }
@@ -29,8 +29,8 @@
             border: 1px solid #475569; 
             border-radius: 4px; 
             box-sizing: border-box; 
-            background-color: #0f172a; /* Dark inputs */
-            color: #f8fafc; /* White text inside inputs */
+            background-color: #0f172a; 
+            color: #f8fafc; 
         }
         
         input::placeholder { color: #64748b; }
@@ -42,7 +42,7 @@
         }
         
         .btn { 
-            background-color: #2563eb; /* Primary blue */
+            background-color: #2563eb; 
             color: white; 
             padding: 12px 15px; 
             border: none; 
@@ -56,14 +56,17 @@
         }
         .btn:hover { background-color: #1d4ed8; }
         
-        /* Dark mode alerts */
         .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; font-size: 14px; }
         .alert-danger { background-color: #7f1d1d; color: #fecaca; border: 1px solid #991b1b; }
         .alert-success { background-color: #14532d; color: #bbf7d0; border: 1px solid #166534; }
         .alert-warning { background-color: #78350f; color: #fde68a; border: 1px solid #92400e; }
         
         .text-center { text-align: center; }
-        h2 { color: #f8fafc; margin-top: 0; margin-bottom: 25px; }
+        
+        /* Updated Header Styles */
+        h2 { color: #f8fafc; margin-top: 0; margin-bottom: 5px; font-size: 22px; }
+        h4 { color: #94a3b8; margin-top: 0; margin-bottom: 25px; font-weight: normal; font-size: 16px; }
+        
         a { color: #60a5fa; transition: color 0.2s; }
         a:hover { color: #93c5fd; }
     </style>
@@ -71,9 +74,10 @@
 <body>
 
     <div class="login-container">
-        <h2 class="text-center">System Login</h2>
+        <!-- New Titles -->
+        <h2 class="text-center">Inventory Management System</h2>
+        <h4 class="text-center">System Login</h4>
         
-        <!-- Display Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
@@ -113,13 +117,11 @@
             <button type="submit" class="btn">Log In</button>
         </form>
         
-        <!-- Registration Link -->
         <div class="text-center" style="margin-top: 25px; font-size: 14px;">
             <p style="color: #94a3b8;">New here? <a href="/register" style="text-decoration: none; font-weight: bold;">Register your store</a></p>
         </div>
     </div>
 
-    <!-- JavaScript to toggle Passcode vs Department based on Role -->
     <script>
         function toggleFields() {
             var role = document.getElementById('user_role').value;
@@ -135,7 +137,6 @@
             }
         }
         
-        // Run once when the page loads to set the correct view
         window.onload = toggleFields;
     </script>
 </body>
