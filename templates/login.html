@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Login | Hypermarket ERP</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; color: #fff; }
+        .login-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        h2 { text-align: center; margin-bottom: 1.5rem; color: #60a5fa; }
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.4rem; font-size: 0.9rem; color: #cbd5e1; }
+        input, select { width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); color: #0f172a; font-size: 1rem; box-sizing: border-box; }
+        button { width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 1rem; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+        button:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .alert { padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.85rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>🏬 Hypermarket ERP</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label>Store / Mart Name</label>
+                <input type="text" name="shop_name" placeholder="e.g. Samruddhi Mart" required>
+            </div>
+            <div class="form-group">
+                <label>Access Role</label>
+                <select name="user_role" id="user_role" onchange="toggleRoleFields()">
+                    <option value="Store / Mart Admin">Store / Mart Admin</option>
+                    <option value="Department Staff">Department Staff</option>
+                </select>
+            </div>
+
+            <!-- Admin Passcode Field (Only shown if Admin is selected) -->
+            <div class="form-group" id="admin-passcode-group">
+                <label>Admin Secret Passcode</label>
+                <input type="password" name="admin_passcode" placeholder="Enter admin passcode">
+            </div>
+
+            <!-- Department Field (Only shown if Staff is selected) -->
+            <div class="form-group" id="dept-group" style="display: none;">
+                <label>Assigned Section / Department</label>
+                <select name="department">
+                    {% for dept in departments %}
+                    <option value="{{ dept }}">{{ dept }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">Go</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleRoleFields() {
+            var role = document.getElementById("user_role").value;
+            var deptGroup = document.getElementById("dept-group");
+            var adminPasscodeGroup = document.getElementById("admin-passcode-group");
+
+            if (role === "Department Staff") {
+                deptGroup.style.display = "block";
+                adminPasscodeGroup.style.display = "none";
+            } else {
+                deptGroup.style.display = "none";
+                adminPasscodeGroup.style.display = "block";
+            }
+        }
+        toggleRoleFields();
+    </script>
+</body>
+</html>

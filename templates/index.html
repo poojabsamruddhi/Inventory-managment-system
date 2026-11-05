@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypermarket ERP - Dashboard</title>
+    <!-- Include Chart.js CDN for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; margin: 0; color: #f8fafc; }
+        .navbar { background: #1e293b; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .container { max-width: 1300px; margin: 2rem auto; padding: 0 1rem; }
+        
+        /* Layout for Admin: Left Sidebar + Main Content */
+        .admin-layout { display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: start; }
+        
+        .sidebar { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .sidebar h4 { color: #60a5fa; margin-top: 0; margin-bottom: 1rem; font-size: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+        .sidebar-link { display: block; background: #334155; border: 1px solid #475569; padding: 0.85rem 1rem; border-radius: 8px; margin-bottom: 0.6rem; color: #fff; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: 0.2s; }
+        .sidebar-link:hover, .sidebar-link.active { background: #2563eb; border-color: #60a5fa; font-weight: bold; }
+
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        h3 { color: #60a5fa; margin-top: 0; }
+        
+        /* Staff Banner Box */
+        .staff-banner { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #3b82f6; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Chart Container */
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 300px; }
+
+        /* Table Design */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; color: #f8fafc; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+        th { color: #93c5fd; font-weight: 600; background: #0f172a; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; color: #cbd5e1; }
+        input, select { width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; box-sizing: border-box; }
+        button { padding: 0.6rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #3b82f6; }
+        .btn-danger { background: #dc2626; padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+        .alert { padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .placeholder-box { text-align: center; padding: 3rem; color: #94a3b8; font-style: italic; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed #334155; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div>
+            <h2>🏬 {{ shop_name }}</h2>
+        </div>
+        <div>
+            <span>Role: <strong>{{ user_role }}</strong></span> | 
+            <a href="/logout" style="color: #fca5a5; text-decoration: none; margin-left: 1rem;">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- IF STAFF: Simple Dedicated View -->
+        {% if user_role == 'Department Staff' %}
+        <div class="staff-banner">
+            <div>
+                <h2 style="margin: 0; color: #60a5fa;">📂 Section: {{ department }}</h2>
+            </div>
+            <div style="text-align: right; color: #94a3b8; font-size: 0.9rem;">
+                Status: <span style="color: #4ade80; font-weight: bold;">Active Entry Mode</span>
+            </div>
+        </div>
+
+        <!-- Register / Add Item Form (Staff Only) -->
+        <div class="card">
+            <h3>➕ Register New Item Entry</h3>
+            <form method="POST" action="/add">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" name="item_name" placeholder="e.g. Organic Milk" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Department Section</label>
+                        <input type="text" value="{{ department }}" disabled style="background: #1e293b; color: #93c5fd; font-weight: bold;">
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity & Unit</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" name="quantity" min="1" value="10" required style="flex: 2;">
+                            <select name="unit" style="flex: 1;">
+                                <option value="Kg">Kg</option>
+                                <option value="Ltrs">Ltrs</option>
+                                <option value="Units">Units</option>
+                                <option value="Packets">Packets</option>
+                                <option value="Grams">Grams</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Unit Price (₹)</label>
+                        <input type="number" step="0.01" name="unit_price" min="0" value="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Supplier</label>
+                        <input type="text" name="supplier" value="Direct Vendor">
+                    </div>
+                </div>
+                <button type="submit" style="margin-top: 0.5rem;">Commit to Database</button>
+            </form>
+        </div>
+
+        <!-- Staff Registry Table -->
+        <div class="card">
+            <h3>📋 Staff Entries Registry — {{ department }}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Auto Date</th>
+                        <th>Unit Price</th>
+                        <th>Total Cost</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><code>{{ loop.index }}</code></td>
+                        <td><strong>{{ item.item_name }}</strong></td>
+                        <td>{{ item.quantity }} {{ item.unit }}</td>
+                        <td>{{ item.last_updated }}</td>
+                        <td>₹{{ "%.2f"|format(item.unit_price|float) }}</td>
+                        <td>₹{{ "%.2f"|format((item.quantity|int) * (item.unit_price|float)) }}</td>
+                        <td>
+                            <form action="/delete/{{ item.item_id }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <!-- IF ADMIN: Left Sidebar Navigation Layout -->
+        <div class="admin-layout">
+            <!-- Left Sidebar Section Selector -->
+            <div class="sidebar">
+                <h4>🗂️ Store Sections</h4>
+                <a href="{{ url_for('index', dept='All Sections') }}" class="sidebar-link {% if selected_dept == 'All Sections' %}active{% endif %}">
+                    🌐 All Sections Overview
+                </a>
+                {% for dept in departments %}
+                <a href="{{ url_for('index', dept=dept) }}" class="sidebar-link {% if selected_dept == dept %}active{% endif %}">
+                    📂 {{ dept }}
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Main Content Area -->
+            <div>
+                {% if not selected_dept or selected_dept == 'None' %}
+                <div class="placeholder-box">
+                    <h2>👈 Please select a section from the left menu</h2>
+                    <p>Click any store section on the left to inspect staff entries.</p>
+                </div>
+                {% else %}
+                
+                <!-- Stock Availability Chart (Shown ONLY for All Sections Overview) -->
+                {% if selected_dept == 'All Sections' %}
+                <div class="card">
+                    <h3>📊 Overall Store Stock Overview</h3>
+                    <div class="chart-container">
+                        <canvas id="stockChart"></canvas>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Staff Entries Registry Table (Admin Delete / Inspect) -->
+                <div class="card">
+                    <h3>📋 Staff Entries Registry — <span style="color: #60a5fa;">{{ selected_dept }}</span></h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Item Name</th>
+                                <th>Section Name</th>
+                                <th>Quantity</th>
+                                <th>Auto Date</th>
+                                <th>Unit Price</th>
+                                <th>Total Cost</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if items %}
+                                {% for item in items %}
+                                <tr>
+                                    <td><code>{{ loop.index }}</code></td>
+                                    <td><strong>{{ item.item_name }}</strong></td>
+                                    <td>{{ item.department }}</td>
+                                    <td>{{ item.quantity }} {{ item.unit }}</td>
+                                    <td>{{ item.last_updated }}</td>
+                                    <td>₹{{ "%.2f"|format(item.unit_price|float) }}</td>
+                                    <td>₹{{ "%.2f"|format((item.quantity|int) * (item.unit_price|float)) }}</td>
+                                    <td>
+                                        <form action="/delete/{{ item.item_id }}?dept={{ selected_dept }}" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn-danger">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" style="text-align: center; color: #94a3b8; padding: 2rem;">No entries found in this section yet.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if user_role == 'Store / Mart Admin' and selected_dept == 'All Sections' %}
+    <script>
+        const allItems = {{ all_items_raw | tojson }};
+        const deptTotals = {};
+
+        allItems.forEach(item => {
+            const dept = item.department || 'General';
+            const qty = parseInt(item.quantity) || 0;
+            deptTotals[dept] = (deptTotals[dept] || 0) + qty;
+        });
+
+        const chartLabels = Object.keys(deptTotals);
+        const chartData = Object.values(deptTotals);
+
+        if (chartLabels.length > 0) {
+            const baseColors = [
+                '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+                '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#06b6d4'
+            ];
+            const backgroundColors = chartLabels.map((_, i) => baseColors[i % baseColors.length]);
+
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Total Stock Quantity',
+                        data: chartData,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } },
+                        x: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } }
+                    }
+                }
+            });
+        }
+    </script>
+    {% endif %}
+</body>
+</html>
